@@ -1,0 +1,66 @@
+plugins {
+    id 'java-library'
+    id 'org.springframework.boot' version '3.2.1'
+    id 'io.spring.dependency-management' version '1.1.4'
+    id "maven-publish"
+    id "com.google.cloud.artifactregistry.gradle-plugin" version "2.2.0"
+}
+
+group = 'com.pros'
+version = '0.0.11-SNAPSHOT'
+
+jar {
+    archiveBaseName = 'currency-conversion-base'
+}
+
+bootJar {
+    enabled = false
+}
+
+jar {
+    enabled = true
+}
+
+java {
+    sourceCompatibility = '21'
+}
+
+def serviceAccountFile = "$projectDir/src/main/resources/pros-exchange-rate-0be86127e257.json"
+
+publishing {
+    repositories {
+        maven {
+            url "artifactregistry://us-east4-maven.pkg.dev/pros-exchange-rate/exchange-repository"
+            credentials{
+                username = "_json_key"
+                password = new File(serviceAccountFile).text
+            }
+        }
+    }
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+        }
+    }
+}
+
+
+repositories {
+    maven {
+        url "artifactregistry://us-east4-maven.pkg.dev/pros-exchange-rate/exchange-repository"
+    }
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+    implementation 'org.springframework.boot:spring-boot-starter-data-mongodb-reactive'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springdoc:springdoc-openapi-starter-webflux-ui:2.2.0'
+    annotationProcessor 'org.projectlombok:lombok'
+    compileOnly 'org.projectlombok:lombok'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
